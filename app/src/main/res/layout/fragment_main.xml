@@ -17,14 +17,45 @@
         android:layout_height="wrap_content"
         android:hint="Search (by name, currency)"
         android:inputType="textVisiblePassword"/>
-<ListView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/gateways_list"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    >
+    <ListView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/gateways_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        >
+    </ListView>
+
+     <!-- For displaying total gateways and API Hits   -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#eeeeee"
+        android:padding="10dp"
+        android:layout_marginTop="10dp"
+        >
+        <TextView
+            android:id="@+id/totalGatewayTextview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text=""
+            android:fontFamily="sans-serif-condensed"
+            android:textAppearance="?android:textAppearanceMedium"
+            />
+        <TextView
+            android:id="@+id/apiHitsTextview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text=""
+            android:fontFamily="sans-serif-condensed"
+            android:textAppearance="?android:textAppearanceMedium"/>
+
+    </LinearLayout>
 
 
-</ListView>
+
 
 </LinearLayout>

@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -45,6 +46,10 @@ public class GatewayFragment extends Fragment {
     private boolean isSavedInstance =false;
     private Gateway gateway;
     private EditText searchEditText;
+    private  TextView totalGatewayTextview;
+    private  TextView  apiHitsTextView;
+
+    private int apiHits;
 
     public GatewayFragment() {
     }
@@ -106,8 +111,6 @@ public class GatewayFragment extends Fragment {
         ListView gatewayListView = (ListView) rootView.findViewById(R.id.gateways_list);
         gatewayListView.setAdapter(gatewayAdapter);
 
-
-
         gatewayListView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -122,6 +125,10 @@ public class GatewayFragment extends Fragment {
 
             }
         } );
+
+       totalGatewayTextview = (TextView) rootView.findViewById(R.id.totalGatewayTextview);
+        apiHitsTextView = (TextView) rootView.findViewById(R.id.apiHitsTextview);
+
 
         return  rootView;
     }
@@ -170,17 +177,35 @@ public class GatewayFragment extends Fragment {
 
     }
 
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        Log.d(LOG_TAG," onActivityCreated Called");
+        totalGatewayTextview.setText("Total Gateways: "+resultList.size());
+        apiHitsTextView.setText("API Hits: " +apiHits);
+
+    }
+
     public void updateMovies(){
         FetchGatewayDataTask gatewayDataTask = new FetchGatewayDataTask();
         Log.d(LOG_TAG," updateMovies Called");
-        String QUERY_PARAM = "list_gateway";
-        gatewayDataTask.execute(QUERY_PARAM);
+        gatewayDataTask.execute();
+
+
+        // To get API Hits Count
+
+        FetchApiHitsTask fetchApiHitsTsk = new FetchApiHitsTask();
+        fetchApiHitsTsk.execute();
+
+        Log.d(LOG_TAG,"resultList Size: "+resultList.size() +"  APi hits: "+apiHits);
+
+
     }
 
 
 
 
-    public class FetchGatewayDataTask extends AsyncTask<String, Void, ArrayList<Gateway>>{
+    public class FetchGatewayDataTask extends AsyncTask<Void, Void, ArrayList<Gateway>>{
 
         private final String LOG_TAG = FetchGatewayDataTask.class.getSimpleName();
 
@@ -245,7 +270,7 @@ public class GatewayFragment extends Fragment {
 
 
         @Override
-        protected  ArrayList<Gateway> doInBackground(String... params) {
+        protected  ArrayList<Gateway> doInBackground(Void... params) {
 
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
@@ -343,6 +368,8 @@ public class GatewayFragment extends Fragment {
                     gatewayAdapter.add(curGateway);
                 }
 
+                totalGatewayTextview.setText("Total Gateways: "+resultList.size());
+
             }
             else{
                 // Let the user know that some problem has occurred via a toast
@@ -352,4 +379,116 @@ public class GatewayFragment extends Fragment {
 
         }
     }
+
+
+    // Backgound task to fetch API Hits
+
+    public class FetchApiHitsTask  extends AsyncTask<Void, Void, Integer>{
+
+        private final String LOG_TAG = FetchApiHitsTask.class.getSimpleName();
+
+
+        @Override
+        protected Integer doInBackground(Void... params) {
+            HttpURLConnection urlConnection = null;
+            BufferedReader reader = null;
+
+
+            // Will contain the raw JSON response as a string.
+            String gatewayJsonStr = null;
+
+            try {
+                // Construct the URL for the paymentGateway API Hits query
+
+
+                final String API_HITS_URL = "http://hackerearth.0x10.info/api/payment_portals?type=json&query=api_hits";
+
+                Uri apiHitsUri = Uri.parse(API_HITS_URL);
+
+                URL url = new URL(apiHitsUri.toString());
+                Log.v(LOG_TAG, "Api Hits URI : "+apiHitsUri.toString());
+
+                // Create the request to Gateway API, and open the connection
+                urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("GET");
+                urlConnection.connect();
+
+                // Read the input stream into a String
+                InputStream inputStream = urlConnection.getInputStream();
+                StringBuffer buffer = new StringBuffer();
+                if (inputStream == null) {
+                    // Nothing to do.
+                    return null;
+                }
+                reader = new BufferedReader(new InputStreamReader(inputStream));
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    buffer.append(line + "\n");   // Just for debugging purposes
+                }
+
+                if (buffer.length() == 0) {
+                    // Stream was empty.  No point in parsing.
+                    return null;
+                }
+                gatewayJsonStr = buffer.toString();
+                Log.d(LOG_TAG,"Gateway API hits  Json String: " +gatewayJsonStr);
+            } catch (IOException e) {
+                Log.e(LOG_TAG, "Error ", e);
+                // If the code didn't successfully get the payment gateway data, there's no point in attempting
+                // to parse it.
+                return  null;
+            } finally{
+                if (urlConnection != null) {
+                    urlConnection.disconnect();
+                }
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (final IOException e) {
+                        Log.e(LOG_TAG, "Error closing stream", e);
+                    }
+                }
+            }
+
+            try {
+                return getApiHitsFromJson(gatewayJsonStr);
+            }
+            catch (JSONException e) {
+                Log.e(LOG_TAG, e.getMessage(), e);
+                e.printStackTrace();
+            }
+
+            // This will only happen if there was an error getting or parsing the forecast.
+            return null;
+
+        }
+
+        private int getApiHitsFromJson(String jsonStr) throws JSONException{
+
+            final String API_HITS = "api_hits";
+
+
+
+            JSONObject gatewayJsonObject = new JSONObject(jsonStr);
+            int hits = Integer.parseInt( gatewayJsonObject.getString(API_HITS) );
+
+
+            return  hits;
+
+        }
+
+
+        @Override
+        protected void onPostExecute(Integer apiHitsCount) {
+            super.onPostExecute(apiHitsCount);
+
+           apiHits = apiHitsCount;
+            apiHitsTextView.setText("API Hits: " +apiHits);
+
+
+
+        }
+    }
+
 }
