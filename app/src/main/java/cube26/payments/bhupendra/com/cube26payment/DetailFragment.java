@@ -157,6 +157,7 @@ public class DetailFragment extends Fragment {
         DownloadManager.Request request = new DownloadManager.Request(uri);
 
         request.setTitle(name).setDescription("Downloading info docs for "+name);
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
 
         request.setDestinationInExternalFilesDir(getContext(), Environment.DIRECTORY_DOWNLOADS,name +".pdf");
         request.setVisibleInDownloadsUi(true);
