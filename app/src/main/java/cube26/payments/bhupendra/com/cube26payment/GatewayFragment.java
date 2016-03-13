@@ -145,6 +145,12 @@ public class GatewayFragment extends Fragment {
 
         int id = item.getItemId();
 
+        if(id == R.id.action_portfolio){
+            Intent intent;
+            intent = new Intent(getActivity(), PortfolioActivity.class);
+            startActivity(intent);
+        }
+
         if(id == R.id.action_sort_setup_fee){
 
             SORT_PARAM = "setup_fee";

@@ -4,6 +4,13 @@
 
 
     <item
+        android:id="@+id/action_portfolio"
+        app:showAsAction="always"
+        android:title="@string/portfolio" >
+    </item>
+
+
+    <item
         android:id="@+id/action_sortBy"
         app:showAsAction="always"
         android:title="@string/sort_by"

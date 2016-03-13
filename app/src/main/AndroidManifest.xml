@@ -3,6 +3,8 @@
     package="cube26.payments.bhupendra.com.cube26payment" >
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     
     <application
         android:allowBackup="true"
@@ -24,6 +26,15 @@
         <activity
             android:name=".DetailActivity"
             android:label="@string/title_activity_detail"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".DetailActivity" />
+        </activity>
+        <activity
+            android:name=".PortfolioActivity"
+            android:label="@string/portfolio"
             android:parentActivityName=".MainActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
