@@ -6,6 +6,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -14,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -41,6 +44,7 @@ public class GatewayFragment extends Fragment {
     private static final String LOG_TAG = GatewayFragment.class.getSimpleName();
     private boolean isSavedInstance =false;
     private Gateway gateway;
+    private EditText searchEditText;
 
     public GatewayFragment() {
     }
@@ -69,10 +73,40 @@ public class GatewayFragment extends Fragment {
 
         Log.d(LOG_TAG,"Inside onCreateView");
 
+        searchEditText = (EditText) rootView.findViewById(R.id.inputSearch);
+
+        // Search EditText textChanged Listener
+
+        searchEditText.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
+                // When user changed the Text
+               gatewayAdapter.getFilter().filter(cs);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+
+
+        });
+
+
+        // gateway adapter and listview
+
        gatewayAdapter = new GatewayAdapter(getActivity() , new ArrayList<Gateway>());
 
         ListView gatewayListView = (ListView) rootView.findViewById(R.id.gateways_list);
         gatewayListView.setAdapter(gatewayAdapter);
+
+
 
         gatewayListView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override

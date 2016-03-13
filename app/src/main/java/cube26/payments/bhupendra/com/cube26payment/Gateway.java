@@ -58,6 +58,11 @@ public class Gateway implements Parcelable{
     }
 
 
+    // Used in the searchView to search for the payment gateway name and the available currencies
+    @Override
+    public String toString() {
+        return name + " " +currencies;
+    }
 
 
 
