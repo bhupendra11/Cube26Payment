@@ -224,7 +224,15 @@ public class DetailFragment extends Fragment {
                 }
             }
         };
-        getContext().registerReceiver(receiverNotificationClicked,filter);
+        getContext().registerReceiver(receiverDownloadComplete,filter);
 
+    }
+
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        getActivity().unregisterReceiver(receiverDownloadComplete);
+        getActivity().unregisterReceiver(receiverNotificationClicked);
     }
 }
