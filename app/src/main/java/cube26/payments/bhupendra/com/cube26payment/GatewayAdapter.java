@@ -27,6 +27,7 @@ public class GatewayAdapter extends ArrayAdapter<Gateway>
            Gateway gateway= getItem(position);
 
             String gatewayName = gateway.name;
+            String gatewayHowToDoc = gateway.how_to_doc;
 
 
             if (convertView == null) {
@@ -36,6 +37,8 @@ public class GatewayAdapter extends ArrayAdapter<Gateway>
 
             TextView gatewayView= (TextView) convertView.findViewById(R.id.gateway_name_textview);
             gatewayView.setText(gatewayName);
+
+
 
 
             return convertView;

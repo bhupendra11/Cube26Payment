@@ -1,11 +1,16 @@
 package cube26.payments.bhupendra.com.cube26payment;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -24,16 +29,37 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
+import cube26.payments.bhupendra.com.cube26payment.util.util;
+
 /**
  * A placeholder fragment containing a simple view.
  */
 public class GatewayFragment extends Fragment {
     private GatewayAdapter gatewayAdapter;
-    private  ArrayList<Gateway> gatewayList = new ArrayList<Gateway>();
+    private String SORT_PARAM ="rating";
+    private  ArrayList<Gateway> resultList = new ArrayList<Gateway>();
     private static final String LOG_TAG = GatewayFragment.class.getSimpleName();
     private boolean isSavedInstance =false;
+    private Gateway gateway;
 
     public GatewayFragment() {
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+
+        if(savedInstanceState != null && savedInstanceState.containsKey("GatewayList")){
+            Log.d(LOG_TAG,"Using savedInstanceBundle ");
+            isSavedInstance= true;
+            resultList.clear();
+            resultList =savedInstanceState.getParcelableArrayList("GatewayList");
+        }
+        else{
+            updateMovies();
+        }
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -45,13 +71,20 @@ public class GatewayFragment extends Fragment {
 
        gatewayAdapter = new GatewayAdapter(getActivity() , new ArrayList<Gateway>());
 
-        ListView gatewayList = (ListView) rootView.findViewById(R.id.gateways_list);
-        gatewayList.setAdapter(gatewayAdapter);
+        ListView gatewayListView = (ListView) rootView.findViewById(R.id.gateways_list);
+        gatewayListView.setAdapter(gatewayAdapter);
 
-        gatewayList.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+        gatewayListView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                
+
+                Log.d("GatewayFragment", "inside onItemClick");
+
+                gateway = gatewayAdapter.getItem(position);
+
+                Intent intent = new Intent(getActivity(), DetailActivity.class)
+                        .putExtra("GatewayParcel", gateway);
+                startActivity(intent);
 
             }
         } );
@@ -59,12 +92,48 @@ public class GatewayFragment extends Fragment {
         return  rootView;
     }
 
+    public void onCreateOptionsMenu(Menu menu , MenuInflater inflater) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        super.onCreateOptionsMenu(menu,inflater);
+        inflater.inflate(R.menu.menu_fragment_main, menu);
+
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        int id = item.getItemId();
+
+        if(id == R.id.action_sort_setup_fee){
+
+            SORT_PARAM = "setup_fee";
+           gatewayAdapter.sort(new util.SetupFeeComparator());
+
+
+        }
+
+        if(id== R.id.action_sort_rating){
+
+            SORT_PARAM = "rating";
+            gatewayAdapter.sort(new util.RatingComparator());
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList("GatewayList",resultList);
+        super.onSaveInstanceState(outState);
+    }
+
+
     @Override
     public void onStart() {
         super.onStart();
         Log.d(LOG_TAG," onStart Called");
 
-        updateMovies();
+
     }
 
     public void updateMovies(){
@@ -73,12 +142,6 @@ public class GatewayFragment extends Fragment {
         String QUERY_PARAM = "list_gateway";
         gatewayDataTask.execute(QUERY_PARAM);
     }
-
-
-
-
-
-
 
 
 
@@ -139,11 +202,11 @@ public class GatewayFragment extends Fragment {
 
 
                 gateway =new Gateway(name,image,description,branding,rating,currencies,setup_fee,transaction_fee,how_to_doc);
-                gatewayList.add(gateway);
+                resultList.add(gateway);
 
             }
 
-            return gatewayList;
+            return resultList;
         }
 
 
@@ -160,14 +223,14 @@ public class GatewayFragment extends Fragment {
             try {
                 // Construct the URL for the paymentGateway API query
 
+                // URI can be "list_gateway"  or "api_hits"
+                final String GATEWAYS_LIST_URL = "http://hackerearth.0x10.info/api/payment_portals?type=json&query=list_gateway";
 
-                final String GATEWAYS_BASE_URL = "http://hackerearth.0x10.info/api/payment_portals?type=json";
-                // query can be "list_gateway"  or "api_hits"
-                final String QUERY_PARAM = "query";
+                final String API_HITS_URL = "http://hackerearth.0x10.info/api/payment_portals?type=json&query=api_hits";
 
-                Uri builtUri = Uri.parse(GATEWAYS_BASE_URL).buildUpon()
-                        .appendQueryParameter(QUERY_PARAM,params[0])
-                        .build();
+                Uri builtUri = Uri.parse(GATEWAYS_LIST_URL);
+                Uri apiHitsUri = Uri.parse(API_HITS_URL);
+
 
 
 
@@ -233,16 +296,16 @@ public class GatewayFragment extends Fragment {
 
 
         @Override
-        protected void onPostExecute(ArrayList<Gateway> results) {
-            super.onPostExecute(gatewayList);
+        protected void onPostExecute(ArrayList<Gateway> resultList) {
+            super.onPostExecute(resultList);
 
-            if(gatewayList !=null) {
+            if(resultList !=null) {
 
                 gatewayAdapter.clear();
 
                 Gateway curGateway;
-                for (int i = 0; i < gatewayList.size(); i++) {
-                    curGateway = gatewayList.get(i);
+                for (int i = 0; i < resultList.size(); i++) {
+                    curGateway = resultList.get(i);
                     gatewayAdapter.add(curGateway);
                 }
 
